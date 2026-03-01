@@ -152,7 +152,9 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP()
+Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP(1)
 
 -- [[ В САМОМ КОНЦЕ ЗАПУСКАЕМ ТВОЙ ВТОРОЙ СКРИПТ ]] --
-loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2"))(1)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod3"))()
+

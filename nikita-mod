@@ -13,10 +13,10 @@ local startTime = os.time()
 local CurrentLang = "RU"
 
 local LangData = {
-    RU = {Title = "Моды Никиты", Time = "Время: ", Hidden = "[СКРЫТ] ", Visible = "[ВИДИМ] ", Flag = "🇷🇺"},
-    UA = {Title = "Моди Микити", Time = "Час: ", Hidden = "[ПРИХОВАНИЙ] ", Visible = "[ВИДИМИЙ] ", Flag = "🇺🇦"},
-    EE = {Title = "Nikita Modid", Time = "Aeg: ", Hidden = "[PEIDETUD] ", Visible = "[NÄHTAV] ", Flag = "🇪🇪"},
-    EN = {Title = "Nikita's Mods", Time = "Time: ", Hidden = "[HIDDEN] ", Visible = "[VISIBLE] ", Flag = "🇺🇸"}
+    RU = {Title = "Моды Никиты", Time = "Время: ", Hidden = "[СКРЫТ] ", Visible = "[ВИДИМ] ", Flag = "🇷🇺", Confirm = "Закрыть и сбросить?", Yes = "Да", No = "Нет"},
+    UA = {Title = "Моди Микити", Time = "Час: ", Hidden = "[ПРИХОВАНИЙ] ", Visible = "[ВИДИМИЙ] ", Flag = "🇺🇦", Confirm = "Закрити і скинути?", Yes = "Так", No = "Ні"},
+    EE = {Title = "Nikita Modid", Time = "Aeg: ", Hidden = "[PEIDETUD] ", Visible = "[NÄHTAV] ", Flag = "🇪🇪", Confirm = "Sulge ja lähtesta?", Yes = "Jah", No = "Ei"},
+    EN = {Title = "Nikita's Mods", Time = "Time: ", Hidden = "[HIDDEN] ", Visible = "[VISIBLE] ", Flag = "🇺🇸", Confirm = "Close and reset?", Yes = "Yes", No = "No"}
 }
 
 -- Функция перетаскивания (Твоя оригинальная)
@@ -49,6 +49,39 @@ DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); DestroyBtn.Text = "×";
 Instance.new("UICorner", DestroyBtn).CornerRadius = UDim.new(1, 0)
 makeDraggable(OpenBtn, DestroyBtn)
 
+-- ЛОГИКА ЗАКРЫТИЯ С ПОДТВЕРЖДЕНИЕМ
+DestroyBtn.MouseButton1Click:Connect(function()
+    local d = LangData[CurrentLang]
+    local cf = Instance.new("Frame", ScreenGui)
+    cf.Size = UDim2.new(0, 240, 0, 120); cf.Position = UDim2.new(0.5, -120, 0.5, -60)
+    cf.BackgroundColor3 = Color3.fromRGB(30, 30, 30); cf.ZIndex = 100; Instance.new("UICorner", cf)
+    
+    local t = Instance.new("TextLabel", cf)
+    t.Size = UDim2.new(1, 0, 0.5, 0); t.Text = d.Confirm; t.TextColor3 = Color3.new(1,1,1)
+    t.BackgroundTransparency = 1; t.TextScaled = true; t.ZIndex = 101
+
+    local yes = Instance.new("TextButton", cf)
+    yes.Size = UDim2.new(0.4, 0, 0.3, 0); yes.Position = UDim2.new(0.05, 0, 0.6, 0); yes.Text = d.Yes; yes.ZIndex = 102
+    yes.BackgroundColor3 = Color3.fromRGB(0, 150, 0); yes.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", yes)
+    
+    yes.MouseButton1Click:Connect(function()
+        for name, active in pairs(Blacklist) do
+            if active then
+                local p = Players:FindFirstChild(name)
+                if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1000, 0)
+                end
+            end
+        end
+        ScreenGui:Destroy()
+    end)
+
+    local no = Instance.new("TextButton", cf)
+    no.Size = UDim2.new(0.4, 0, 0.3, 0); no.Position = UDim2.new(0.55, 0, 0.6, 0); no.Text = d.No; no.ZIndex = 102
+    no.BackgroundColor3 = Color3.fromRGB(150, 0, 0); no.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", no)
+    no.MouseButton1Click:Connect(function() cf:Destroy() end)
+end)
+
 -- ГЛАВНОЕ ОКНО
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 320, 0, 420); MainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
@@ -57,7 +90,6 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 20)
 makeDraggable(MainFrame)
 
 OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
-DestroyBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
 -- ФЛАГИ
 local FlagFrame = Instance.new("Frame", MainFrame)
@@ -110,14 +142,17 @@ end
 RunService.Heartbeat:Connect(function()
     local d = os.time() - startTime
     TimerLabel.Text = LangData[CurrentLang].Time .. string.format("%02d:%02d", math.floor(d/60), d%60)
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            if Blacklist[p.Name] then
-                -- Убираем игрока очень далеко вниз (Локально только для тебя!)
+    for name, active in pairs(Blacklist) do
+        if active then
+            local p = Players:FindFirstChild(name)
+            if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, -1000, 0)
             end
         end
     end
 end)
 
-Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP(1)
+Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP()
+
+-- [[ В САМОМ КОНЦЕ ЗАПУСКАЕМ ТВОЙ ВТОРОЙ СКРИПТ ]] --
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2"))()

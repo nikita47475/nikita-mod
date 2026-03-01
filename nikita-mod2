@@ -1,0 +1,108 @@
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+sg.Name = "NikitaTimer_Fixed_V2"
+sg.ResetOnSpawn = false
+
+local beep = Instance.new("Sound", game:GetService("SoundService"))
+beep.SoundId = "rbxassetid://136523485"
+
+local CurLang = "RU"
+local Langs = {
+    RU = {Kick = "Время истекло!", Choice = "Время вышло!\nПродолжить?", Stay = "Продолжить", Exit = "Выйти", Start = "СТАРТ", Placeholder = "Секунды...", ModeChoice = "РЕЖИМ: ВЫБОР", ModeKick = "РЕЖИМ: КИК", Confirm = "Закрыть мод?"},
+    UA = {Kick = "Час вийшов!", Choice = "Час вийшов!\nПродовжити?", Stay = "Продовжити", Exit = "Вийти", Start = "ПУСК", Placeholder = "Секунди...", ModeChoice = "РЕЖИМ: ВИБІР", ModeKick = "РЕЖИМ: КІК", Confirm = "Закрити мод?"},
+    EE = {Kick = "Aeg on läbi!", Choice = "Aeg on läbi!\nJätka?", Stay = "Jätka", Exit = "Välju", Start = "START", Placeholder = "Sekundid...", ModeChoice = "REŽIIM: VALIK", ModeKick = "REŽIIM: KICK", Confirm = "Sulge mod?"},
+    EN = {Kick = "Time is up!", Choice = "Time is up!\nContinue?", Stay = "Continue", Exit = "Exit", Start = "START", Placeholder = "Seconds...", ModeChoice = "MODE: CHOICE", ModeKick = "MODE: KICK", Confirm = "Close mod?"}
+}
+
+local mode = "Notification"
+
+-- ГЛАВНАЯ ПАНЕЛЬ
+local frame = Instance.new("Frame", sg)
+frame.Size = UDim2.new(0, 180, 0, 195); frame.Position = UDim2.new(1, -200, 0, 50)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); frame.Visible = false
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 20)
+
+local input = Instance.new("TextBox", frame)
+local timeDisplay = Instance.new("TextLabel", frame)
+local startBtn = Instance.new("TextButton", frame)
+local modeBtn = Instance.new("TextButton", frame)
+
+local function updateUI()
+    local d = Langs[CurLang]
+    input.PlaceholderText = d.Placeholder
+    startBtn.Text = d.Start
+    modeBtn.Text = (mode == "Kick") and d.ModeKick or d.ModeChoice
+    timeDisplay.Text = "00:00"
+end
+
+-- ВЫБОР ЯЗЫКА
+local LangFrame = Instance.new("Frame", sg)
+LangFrame.Size = UDim2.new(0, 200, 0, 100); LangFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
+LangFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35); Instance.new("UICorner", LangFrame)
+
+local function createLBtn(txt, code, x, y)
+    local b = Instance.new("TextButton", LangFrame)
+    b.Size = UDim2.new(0, 80, 0, 35); b.Position = UDim2.new(x, 0, y, 0)
+    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(60,60,60); b.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", b); b.MouseButton1Click:Connect(function() 
+        CurLang = code; LangFrame:Destroy(); frame.Visible = true; updateUI() 
+    end)
+end
+createLBtn("RU", "RU", 0.05, 0.1); createLBtn("UA", "UA", 0.55, 0.1)
+createLBtn("EE", "EE", 0.05, 0.55); createLBtn("EN", "EN", 0.55, 0.55)
+
+-- ДРАГ
+local function drag(f)
+    local d, s, sp
+    f.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then d = true s = i.Position sp = f.Position end end)
+    UIS.InputChanged:Connect(function(i) if d and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local delta = i.Position - s; f.Position = UDim2.new(sp.X.Scale, sp.X.Offset + delta.X, sp.Y.Scale, sp.Y.Offset + delta.Y)
+    end end)
+    UIS.InputEnded:Connect(function() d = false end)
+end
+drag(frame)
+
+-- ТАЙМЕР ВНУТРИ
+input.Size = UDim2.new(0.8, 0, 0.18, 0); input.Position = UDim2.new(0.1, 0, 0.05, 0); input.BackgroundColor3 = Color3.fromRGB(45,45,45); input.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", input)
+timeDisplay.Size = UDim2.new(1,0,0.2,0); timeDisplay.Position = UDim2.new(0,0,0.25,0); timeDisplay.TextColor3 = Color3.new(0,1,0.5); timeDisplay.BackgroundTransparency = 1; timeDisplay.TextScaled = true
+modeBtn.Size = UDim2.new(0.8,0,0.15,0); modeBtn.Position = UDim2.new(0.1,0,0.5,0); modeBtn.BackgroundColor3 = Color3.fromRGB(60,60,60); modeBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", modeBtn)
+modeBtn.MouseButton1Click:Connect(function() mode = (mode == "Notification") and "Kick" or "Notification" updateUI() end)
+
+startBtn.Size = UDim2.new(0.8,0,0.15,0); startBtn.Position = UDim2.new(0.1,0,0.7,0); startBtn.BackgroundColor3 = Color3.fromRGB(0,150,0); Instance.new("UICorner", startBtn)
+startBtn.MouseButton1Click:Connect(function()
+    local s = tonumber(input.Text) if not s then return end
+    startBtn.Active = false
+    for i = s, 0, -1 do timeDisplay.Text = string.format("%02d:%02d", math.floor(i/60), i%60); task.wait(1) end
+    if mode == "Kick" then player:Kick("["..player.Name.."]: "..Langs[CurLang].Kick) else 
+        -- Показ выбора
+        local d = Langs[CurLang]; local cf = Instance.new("Frame", sg); cf.Size = UDim2.new(0, 260, 0, 130); cf.Position = UDim2.new(0.5, -130, 0.5, -65); cf.BackgroundColor3 = Color3.fromRGB(30,30,30); Instance.new("UICorner", cf)
+        local m = Instance.new("TextLabel", cf); m.Size = UDim2.new(1,0,0.5,0); m.Text = d.Choice; m.TextColor3 = Color3.new(1,1,1); m.BackgroundTransparency = 1; m.TextScaled = true
+        local eb = Instance.new("TextButton", cf); eb.Size = UDim2.new(0.4,0,0.3,0); eb.Position = UDim2.new(0.05,0,0.6,0); eb.Text = d.Exit; eb.BackgroundColor3 = Color3.fromRGB(150,0,0); eb.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", eb)
+        eb.MouseButton1Click:Connect(function() player:Kick(d.Exit) end)
+        local sb = Instance.new("TextButton", cf); sb.Size = UDim2.new(0.4,0,0.3,0); sb.Position = UDim2.new(0.55,0,0.6,0); sb.Text = d.Stay; sb.BackgroundColor3 = Color3.fromRGB(255,255,255); sb.TextColor3 = Color3.new(0,0,0); Instance.new("UICorner", sb)
+        sb.MouseButton1Click:Connect(function() cf:Destroy() end)
+        for i=1,5 do beep:Play(); task.wait(0.5) end
+    end
+    startBtn.Active = true
+end)
+
+-- СВОРАЧИВАНИЕ
+local xBtn = Instance.new("TextButton", frame); xBtn.Size = UDim2.new(0,25,0,25); xBtn.Position = UDim2.new(1,-30,0,5); xBtn.Text = "×"; xBtn.TextColor3 = Color3.new(1,0,0); xBtn.BackgroundTransparency = 1
+local mini = Instance.new("TextButton", sg); mini.Visible = false; mini.Size = UDim2.new(0,50,0,50); mini.Text = "⏳"; mini.BackgroundColor3 = Color3.fromRGB(30,30,30); Instance.new("UICorner", mini).CornerRadius = UDim.new(1,0); drag(mini)
+local miniClose = Instance.new("TextButton", sg); miniClose.Visible = false; miniClose.Size = UDim2.new(0, 20, 0, 20); miniClose.BackgroundColor3 = Color3.fromRGB(200, 0, 0); miniClose.Text = "×"; miniClose.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", miniClose).CornerRadius = UDim.new(1, 0)
+
+RunService.RenderStepped:Connect(function()
+    if mini.Visible then miniClose.Visible = true; miniClose.Position = UDim2.new(mini.Position.X.Scale, mini.Position.X.Offset + 35, mini.Position.Y.Scale, mini.Position.Y.Offset - 5) else miniClose.Visible = false end
+end)
+
+xBtn.MouseButton1Click:Connect(function() frame.Visible = false; mini.Position = frame.Position; mini.Visible = true end)
+mini.MouseButton1Click:Connect(function() frame.Visible = true; frame.Position = mini.Position; mini.Visible = false end)
+
+miniClose.MouseButton1Click:Connect(function()
+    local d = Langs[CurLang]; local ef = Instance.new("Frame", sg); ef.Size = UDim2.new(0, 200, 0, 100); ef.Position = UDim2.new(0.5, -100, 0.5, -50); ef.BackgroundColor3 = Color3.fromRGB(40, 40, 40); Instance.new("UICorner", ef)
+    local msg = Instance.new("TextLabel", ef); msg.Size = UDim2.new(1, 0, 0.5, 0); msg.Text = d.Confirm; msg.TextColor3 = Color3.new(1, 1, 1); msg.BackgroundTransparency = 1; msg.TextScaled = true
+    local yb = Instance.new("TextButton", ef); yb.Size = UDim2.new(0.4, 0, 0.3, 0); yb.Position = UDim2.new(0.05, 0, 0.6, 0); yb.Text = (CurLang=="RU" and "Да" or "Yes"); yb.BackgroundColor3 = Color3.fromRGB(0, 150, 0); Instance.new("UICorner", yb); yb.MouseButton1Click:Connect(function() sg:Destroy() end)
+    local nb = Instance.new("TextButton", ef); nb.Size = UDim2.new(0.4, 0, 0.3, 0); nb.Position = UDim2.new(0.55, 0, 0.6, 0); nb.Text = (CurLang=="RU" and "Нет" or "No"); nb.BackgroundColor3 = Color3.fromRGB(150, 0, 0); Instance.new("UICorner", nb); nb.MouseButton1Click:Connect(function() ef:Destroy() end)
+end)

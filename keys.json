@@ -1,5 +1,6 @@
 {
   "VIP-TEST-1": {
     "active": true
-  }
-}
+  },
+  "VIP-TEST-2": {
+    "active": false

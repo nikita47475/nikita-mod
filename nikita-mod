@@ -155,5 +155,5 @@ end)
 Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP(1)
 
 -- [[ В САМОМ КОНЦЕ ЗАПУСКАЕМ ТВОЙ ВТОРОЙ СКРИПТ ]] --
-loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2?token=GHSAT0AAAAAADVS3C2QBQ5E75REHMCRMRKM2NFREBA"))(1)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2"))(1)
 

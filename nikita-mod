@@ -1,0 +1,129 @@
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui", CoreGui)
+ScreenGui.Name = "NikitaMods_V22_Final"
+ScreenGui.ResetOnSpawn = false
+
+local Blacklist = {} 
+local startTime = os.time() 
+local CurrentLang = "RU"
+
+local LangData = {
+    RU = {Title = "Моды Никиты", Time = "Время: ", Hidden = "[СКРЫТ] ", Visible = "[ВИДИМ] ", Flag = "🇷🇺"},
+    UA = {Title = "Моди Микити", Time = "Час: ", Hidden = "[ПРИХОВАНИЙ] ", Visible = "[ВИДИМИЙ] ", Flag = "🇺🇦"},
+    EE = {Title = "Nikita Modid", Time = "Aeg: ", Hidden = "[PEIDETUD] ", Visible = "[NÄHTAV] ", Flag = "🇪🇪"},
+    EN = {Title = "Nikita's Mods", Time = "Time: ", Hidden = "[HIDDEN] ", Visible = "[VISIBLE] ", Flag = "🇺🇸"}
+}
+
+-- Функция перетаскивания (Твоя оригинальная)
+local function makeDraggable(frame, extra)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true dragStart = input.Position startPos = frame.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            if extra then extra.Position = UDim2.new(frame.Position.X.Scale, frame.Position.X.Offset + 60, frame.Position.Y.Scale, frame.Position.Y.Offset) end
+        end
+    end)
+    UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+end
+
+-- КНОПКИ N И X
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 55, 0, 55); OpenBtn.Position = UDim2.new(0, 20, 0.4, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255); OpenBtn.Text = "N"; OpenBtn.TextColor3 = Color3.new(1, 1, 1); OpenBtn.TextSize = 32
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+
+local DestroyBtn = Instance.new("TextButton", ScreenGui)
+DestroyBtn.Size = UDim2.new(0, 22, 0, 22); DestroyBtn.Position = UDim2.new(0, 80, 0.4, 0)
+DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); DestroyBtn.Text = "×"; DestroyBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", DestroyBtn).CornerRadius = UDim.new(1, 0)
+makeDraggable(OpenBtn, DestroyBtn)
+
+-- ГЛАВНОЕ ОКНО
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 320, 0, 420); MainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18); MainFrame.Visible = false
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 20)
+makeDraggable(MainFrame)
+
+OpenBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+DestroyBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- ФЛАГИ
+local FlagFrame = Instance.new("Frame", MainFrame)
+FlagFrame.Size = UDim2.new(1, 0, 0, 45); FlagFrame.Position = UDim2.new(0, 0, 0, 15); FlagFrame.BackgroundTransparency = 1
+local FL = Instance.new("UIListLayout", FlagFrame); FL.FillDirection = Enum.FillDirection.Horizontal; FL.HorizontalAlignment = Enum.HorizontalAlignment.Center; FL.Padding = UDim.new(0, 10)
+
+-- СКРОЛЛ
+local BigScroll = Instance.new("ScrollingFrame", MainFrame)
+BigScroll.Size = UDim2.new(1, -10, 1, -80); BigScroll.Position = UDim2.new(0, 5, 0, 70)
+BigScroll.BackgroundTransparency = 1; BigScroll.ScrollBarThickness = 4; BigScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+local MainLayout = Instance.new("UIListLayout", BigScroll); MainLayout.Padding = UDim.new(0, 15); MainLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local TimerLabel = Instance.new("TextLabel", BigScroll)
+TimerLabel.Size = UDim2.new(1, 0, 0, 25); TimerLabel.TextColor3 = Color3.fromRGB(0, 255, 150); TimerLabel.BackgroundTransparency = 1; TimerLabel.LayoutOrder = 1
+
+local PlayerHolder = Instance.new("Frame", BigScroll)
+PlayerHolder.Size = UDim2.new(1, 0, 0, 0); PlayerHolder.BackgroundTransparency = 1; PlayerHolder.AutomaticSize = Enum.AutomaticSize.Y; PlayerHolder.LayoutOrder = 2
+local PHL = Instance.new("UIListLayout", PlayerHolder); PHL.Padding = UDim.new(0, 5)
+
+-- ТВОЯ ИНФО (ВНИЗУ)
+local AvatarImg = Instance.new("ImageLabel", BigScroll)
+AvatarImg.Size = UDim2.new(0, 75, 0, 75); AvatarImg.Image = "rbxthumb://type=AvatarHeadShot&id="..LP.UserId.."&w=150&h=150"
+AvatarImg.LayoutOrder = 3; Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
+
+local MyInfoTxt = Instance.new("TextLabel", BigScroll)
+MyInfoTxt.Size = UDim2.new(1, 0, 0, 70); MyInfoTxt.TextColor3 = Color3.new(1,1,1); MyInfoTxt.BackgroundTransparency = 1
+MyInfoTxt.Text = LP.DisplayName.."\n@"..LP.Name.."\nID: "..LP.UserId; MyInfoTxt.LayoutOrder = 4
+
+function upP()
+    for _, v in pairs(PlayerHolder:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LP then
+            local b = Instance.new("TextButton", PlayerHolder)
+            b.Size = UDim2.new(1, 0, 0, 38)
+            b.BackgroundColor3 = Blacklist[p.Name] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(60, 60, 60)
+            b.Text = (Blacklist[p.Name] and LangData[CurrentLang].Hidden or LangData[CurrentLang].Visible) .. p.Name
+            b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
+            b.MouseButton1Click:Connect(function() Blacklist[p.Name] = not Blacklist[p.Name] upP() end)
+        end
+    end
+end
+
+for code, data in pairs(LangData) do
+    local fBtn = Instance.new("TextButton", FlagFrame)
+    fBtn.Size = UDim2.new(0, 42, 0, 32); fBtn.Text = data.Flag; fBtn.BackgroundColor3 = Color3.fromRGB(55, 35, 25)
+    Instance.new("UICorner", fBtn); fBtn.MouseButton1Click:Connect(function() CurrentLang = code upP() end)
+end
+
+-- МОЩНЫЙ ФИКС СКРЫТИЯ
+RunService.Heartbeat:Connect(function()
+    local d = os.time() - startTime
+    TimerLabel.Text = LangData[CurrentLang].Time .. string.format("%02d:%02d", math.floor(d/60), d%60)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if Blacklist[p.Name] then
+                -- Убираем игрока очень далеко вниз (Локально только для тебя!)
+                p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, -1000, 0)
+            end
+        end
+    end
+end)
+
+Players.PlayerAdded:Connect(upP); Players.PlayerRemoving:Connect(upP); upP(1)
+
+-- === ЗАГРУЗКА ВТОРОГО СКРИПТА С GITHUB ===
+spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod2"))(1)
+end)
+

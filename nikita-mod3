@@ -1,95 +1,83 @@
--- Создание GUI объектов
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local CloseBtn = Instance.new("TextButton")
-local Title = Instance.new("TextLabel")
-local ActionBtn = Instance.new("TextButton")
-local UICornerBtn = Instance.new("UICorner")
+local CloseCorner = Instance.new("UICorner")
+local TopText = Instance.new("TextLabel") -- Твой ник на английском
+local MainText = Instance.new("TextLabel") -- Текст посередине
 
--- Настройка ScreenGui (чтобы не пропадал при смерти)
+-- Настройка
+ScreenGui.Name = "NikitaMenu"
 ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.Name = "XenoMenu_Black"
 ScreenGui.ResetOnSpawn = false
 
--- Главная рамка (Центр, Черная, Закругленная)
+-- Главное окно (Черное, закругленное)
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
-MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -55)
+MainFrame.Size = UDim2.new(0, 220, 0, 110)
 MainFrame.Active = true
-MainFrame.Draggable = true -- Работает на ПК
+MainFrame.Draggable = true
 
--- Закругление углов
-UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = MainFrame
 
--- Заголовок
-Title.Parent = MainFrame
-Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 15, 0, 5)
-Title.Size = UDim2.new(0, 120, 0, 30)
-Title.Font = Enum.Font.GothamBold
-Title.Text = "XENO MENU"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 14
-Title.TextXAlignment = Enum.TextXAlignment.Left
+-- Надпись сверху (By nikita_47475)
+TopText.Parent = MainFrame
+TopText.BackgroundTransparency = 1
+TopText.Position = UDim2.new(0, 12, 0, 5)
+TopText.Size = UDim2.new(0, 150, 0, 15)
+TopText.Font = Enum.Font.SourceSans
+TopText.Text = "By nikita_47475"
+TopText.TextColor3 = Color3.fromRGB(120, 120, 120)
+TopText.TextSize = 12
+TopText.TextXAlignment = Enum.TextXAlignment.Left
 
--- Кнопка закрытия (Крестик)
+-- Текст посередине
+MainText.Parent = MainFrame
+MainText.BackgroundTransparency = 1
+MainText.Position = UDim2.new(0, 10, 0, 35)
+MainText.Size = UDim2.new(1, -20, 0, 50)
+MainText.Font = Enum.Font.GothamBold
+MainText.Text = "этот мод третий версия ещё не доделана"
+MainText.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainText.TextSize = 14
+MainText.TextWrapped = true
+
+-- Крестик (Закрыть с концами)
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Parent = MainFrame
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-CloseBtn.Position = UDim2.new(1, -30, 0, 8)
-CloseBtn.Size = UDim2.new(0, 22, 0, 22)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseBtn.Position = UDim2.new(1, -28, 0, 8)
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.Text = "X"
+CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 14
+CloseBtn.TextSize = 18
 
-local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(1, 0)
 CloseCorner.Parent = CloseBtn
 
--- Пример кнопки выбора внутри
-ActionBtn.Parent = MainFrame
-ActionBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ActionBtn.Position = UDim2.new(0.1, 0, 0.4, 0)
-ActionBtn.Size = UDim2.new(0.8, 0, 0, 35)
-ActionBtn.Font = Enum.Font.Gotham
-ActionBtn.Text = "Включить чит"
-ActionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ActionBtn.TextSize = 14
-
-UICornerBtn.CornerRadius = UDim.new(0, 6)
-UICornerBtn.Parent = ActionBtn
-
--- Логика закрытия (Удаляет меню полностью)
+-- Удаление меню при нажатии
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Скрипт для перетаскивания пальцем (для телефонов)
-local UserInputService = game:GetService("UserInputService")
-local dragging, dragInput, dragStart, startPos
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
+-- Перетаскивание для телефонов
+local UIS = game:GetService("UserInputService")
+local drag, dStart, sPos
+MainFrame.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drag = true dStart = i.Position sPos = MainFrame.Position
     end
 end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+UIS.InputChanged:Connect(function(i)
+    if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local delta = i.Position - dStart
+        MainFrame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + delta.X, sPos.Y.Scale, sPos.Y.Offset + delta.Y)
     end
 end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag = false end
 end)

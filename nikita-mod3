@@ -1,117 +1,317 @@
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local UICorner = Instance.new("UICorner")
-local CloseBtn = Instance.new("TextButton")
-local CloseCorner = Instance.new("UICorner")
-local TopText = Instance.new("TextLabel")
-local MainText = Instance.new("TextLabel")
-local LangFrame = Instance.new("Frame")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 
--- Тексты на разных языках
+local player = Players.LocalPlayer
+
+---------------------------------------------------
+-- GLOBAL STATE
+---------------------------------------------------
+
+local rainbowOn = false
+local activeBalls = {}
+
+local originalAmbient = Lighting.Ambient
+local originalOutdoor = Lighting.OutdoorAmbient
+
+---------------------------------------------------
+-- TEXTS
+---------------------------------------------------
+
 local texts = {
-    RU = "этот мод третий но он ещё не работает",
-    EN = "this mod is the third but it doesn't work yet",
-    UA = "цей мод третій але він ще не працює",
-    EE = "see mod on kolmas, kuid see ei tööta veel"
+	RU = {title="Магия", disco="ДискоШар", rainbow="Разноцветный экран", stop="Остановить"},
+	EN = {title="Magic", disco="Disco Ball", rainbow="Rainbow Screen", stop="Stop"},
+	UA = {title="Магія", disco="ДискоКуля", rainbow="Різнокольоровий екран", stop="Зупинити"},
+	EE = {title="Maagia", disco="Diskokera", rainbow="Vikerkaare ekraan", stop="Peata"}
 }
 
--- Настройка GUI
-ScreenGui.Name = "NikitaMultiLang_v3"
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.ResetOnSpawn = false
+local lang = "RU"
 
--- Главное окно (Черное, закругленное)
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -80)
-MainFrame.Size = UDim2.new(0, 250, 0, 160)
-MainFrame.Active = true
-MainFrame.Draggable = true
+---------------------------------------------------
+-- GUI
+---------------------------------------------------
 
-UICorner.CornerRadius = UDim.new(0, 15)
-UICorner.Parent = MainFrame
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
 
--- Надпись сверху (English / Nick)
-TopText.Parent = MainFrame
-TopText.BackgroundTransparency = 1
-TopText.Position = UDim2.new(0, 12, 0, 5)
-TopText.Size = UDim2.new(0, 200, 0, 15)
-TopText.Font = Enum.Font.SourceSans
-TopText.Text = "By nikita_47475 "
-TopText.TextColor3 = Color3.fromRGB(120, 120, 120)
-TopText.TextSize = 11
-TopText.TextXAlignment = Enum.TextXAlignment.Left
+local frame = Instance.new("Frame")
+frame.Parent = gui
+frame.Size = UDim2.new(0,260,0,200)
+frame.Position = UDim2.new(0.5,-130,0.5,-100)
+frame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+frame.Active = true
 
--- Основной текст посередине
-MainText.Parent = MainFrame
-MainText.BackgroundTransparency = 1
-MainText.Position = UDim2.new(0, 15, 0, 35)
-MainText.Size = UDim2.new(1, -30, 0, 70)
-MainText.Font = Enum.Font.GothamBold
-MainText.Text = texts.RU
-MainText.TextColor3 = Color3.fromRGB(255, 255, 255)
-MainText.TextSize = 14
-MainText.TextWrapped = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,15)
 
--- Панель выбора языка
-LangFrame.Parent = MainFrame
-LangFrame.BackgroundTransparency = 1
-LangFrame.Position = UDim2.new(0, 0, 1, -40)
-LangFrame.Size = UDim2.new(1, 0, 0, 35)
+---------------------------------------------------
+-- TOP TEXT
+---------------------------------------------------
 
-local function createLangBtn(name, pos, textValue)
-    local btn = Instance.new("TextButton")
-    btn.Parent = LangFrame
-    btn.Size = UDim2.new(0, 35, 0, 22)
-    btn.Position = pos
-    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 10
-    
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, 6)
-    c.Parent = btn
-    
-    btn.MouseButton1Click:Connect(function()
-        MainText.Text = textValue
-    end)
+local top = Instance.new("TextLabel")
+top.Parent = frame
+top.BackgroundTransparency = 1
+top.Size = UDim2.new(1,0,0,20)
+top.Text = "By nikita_47475"
+top.TextColor3 = Color3.fromRGB(150,150,150)
+top.TextSize = 11
+top.Font = Enum.Font.SourceSans
+top.TextXAlignment = Enum.TextXAlignment.Left
+
+---------------------------------------------------
+-- TITLE
+---------------------------------------------------
+
+local icon = Instance.new("TextLabel")
+icon.Parent = frame
+icon.BackgroundTransparency = 1
+icon.Position = UDim2.new(0,10,0,22)
+icon.Size = UDim2.new(0,20,0,20)
+icon.Text = "✦"
+icon.Font = Enum.Font.GothamBold
+icon.TextSize = 18
+
+local title = Instance.new("TextLabel")
+title.Parent = frame
+title.BackgroundTransparency = 1
+title.Position = UDim2.new(0,35,0,20)
+title.Size = UDim2.new(1,0,0,25)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.Text = texts[lang].title
+
+---------------------------------------------------
+-- MAGIC COLOR LOOP
+---------------------------------------------------
+
+task.spawn(function()
+	while gui.Parent do
+		local c = Color3.fromHSV(math.random(),1,1)
+		title.TextColor3 = c
+		icon.TextColor3 = c
+		task.wait(1)
+	end
+end)
+
+---------------------------------------------------
+-- DISCO BUTTON
+---------------------------------------------------
+
+local discoBtn = Instance.new("TextButton")
+discoBtn.Parent = frame
+discoBtn.Size = UDim2.new(0,140,0,28)
+discoBtn.Position = UDim2.new(0.5,-70,0,60)
+discoBtn.Text = texts[lang].disco
+discoBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+discoBtn.TextColor3 = Color3.fromRGB(255,255,255)
+discoBtn.Font = Enum.Font.GothamBold
+discoBtn.TextSize = 14
+
+Instance.new("UICorner", discoBtn).CornerRadius = UDim.new(0,10)
+
+---------------------------------------------------
+-- RAINBOW BUTTON
+---------------------------------------------------
+
+local rainbowBtn = Instance.new("TextButton")
+rainbowBtn.Parent = frame
+rainbowBtn.Size = UDim2.new(0,180,0,28)
+rainbowBtn.Position = UDim2.new(0.5,-90,0,95)
+rainbowBtn.Text = texts[lang].rainbow
+rainbowBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+rainbowBtn.TextColor3 = Color3.fromRGB(255,255,255)
+rainbowBtn.Font = Enum.Font.GothamBold
+rainbowBtn.TextSize = 12
+
+Instance.new("UICorner", rainbowBtn).CornerRadius = UDim.new(0,10)
+
+---------------------------------------------------
+-- LANG BUTTONS
+---------------------------------------------------
+
+local function setLang(l)
+	lang = l
+	title.Text = texts[lang].title
+	discoBtn.Text = texts[lang].disco
+	if rainbowOn then
+		rainbowBtn.Text = texts[lang].stop
+	else
+		rainbowBtn.Text = texts[lang].rainbow
+	end
 end
 
--- Кнопки языков (RU, EN, UA, EE)
-createLangBtn("RU", UDim2.new(0, 15, 0, 5), texts.RU)
-createLangBtn("EN", UDim2.new(0, 60, 0, 5), texts.EN)
-createLangBtn("UA", UDim2.new(0, 105, 0, 5), texts.UA)
-createLangBtn("EE", UDim2.new(0, 150, 0, 5), texts.EE)
+local langFrame = Instance.new("Frame", frame)
+langFrame.BackgroundTransparency = 1
+langFrame.Size = UDim2.new(1,0,0,30)
+langFrame.Position = UDim2.new(0,0,1,-35)
 
--- Крестик (Закрыть навсегда)
-CloseBtn.Parent = MainFrame
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-CloseBtn.Position = UDim2.new(1, -28, 0, 8)
-CloseBtn.Size = UDim2.new(0, 20, 0, 20)
-CloseBtn.Text = "×"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 18
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
-CloseCorner.Parent = CloseBtn
+local function langBtn(t,x)
+	local b = Instance.new("TextButton")
+	b.Parent = langFrame
+	b.Size = UDim2.new(0,40,0,20)
+	b.Position = UDim2.new(0,x,0,5)
+	b.Text = t
+	b.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	b.TextColor3 = Color3.fromRGB(255,255,255)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 10
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
+	b.MouseButton1Click:Connect(function()
+		setLang(t)
+	end)
+end
 
-CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+langBtn("RU",10)
+langBtn("EN",60)
+langBtn("UA",110)
+langBtn("EE",160)
 
--- Перетаскивание (ПК и Телефон)
-local UIS = game:GetService("UserInputService")
-local drag, dStart, sPos
-MainFrame.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-        drag = true dStart = i.Position sPos = MainFrame.Position
-    end
+---------------------------------------------------
+-- CLOSE BUTTON
+---------------------------------------------------
+
+local close = Instance.new("TextButton")
+close.Parent = frame
+close.Size = UDim2.new(0,22,0,22)
+close.Position = UDim2.new(1,-28,0,6)
+close.BackgroundColor3 = Color3.fromRGB(255,60,60)
+close.Text = "×"
+close.TextColor3 = Color3.fromRGB(255,255,255)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 18
+
+Instance.new("UICorner", close).CornerRadius = UDim.new(1,0)
+
+---------------------------------------------------
+-- DISCO
+---------------------------------------------------
+
+local discoActive = false
+
+discoBtn.MouseButton1Click:Connect(function()
+	if discoActive then return end
+	discoActive = true
+
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hrp = char:WaitForChild("HumanoidRootPart")
+
+	local balls = {}
+	activeBalls = balls
+
+	for i=1,10 do
+		local p = Instance.new("Part")
+		p.Shape = Enum.PartType.Ball
+		p.Size = Vector3.new(2,2,2)
+		p.Anchored = true
+		p.Material = Enum.Material.Neon
+		p.Parent = workspace
+
+		local l = Instance.new("PointLight",p)
+		l.Brightness = 3
+
+		table.insert(balls,p)
+	end
+
+	local t = tick()
+	local conn
+
+	conn = RunService.RenderStepped:Connect(function()
+		local e = tick()-t
+		if e>3 then
+			conn:Disconnect()
+			for _,v in pairs(balls) do v:Destroy() end
+			activeBalls = {}
+			discoActive = false
+			return
+		end
+
+		for i,v in ipairs(balls) do
+			local a = e*4+i
+			v.Position = hrp.Position + Vector3.new(math.cos(a)*8,2+math.sin(e*5+i),math.sin(a)*8)
+			v.Color = Color3.fromHSV((e+i)/10%1,1,1)
+		end
+	end)
 end)
-UIS.InputChanged:Connect(function(i)
-    if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-        local delta = i.Position - dStart
-        MainFrame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + delta.X, sPos.Y.Scale, sPos.Y.Offset + delta.Y)
-    end
+
+---------------------------------------------------
+-- RAINBOW SCREEN
+---------------------------------------------------
+
+local function updateRainbowUI()
+	if rainbowOn then
+		rainbowBtn.Text = texts[lang].stop
+		rainbowBtn.BackgroundColor3 = Color3.fromRGB(255,60,60)
+	else
+		rainbowBtn.Text = texts[lang].rainbow
+		rainbowBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	end
+end
+
+rainbowBtn.MouseButton1Click:Connect(function()
+	rainbowOn = not rainbowOn
+	updateRainbowUI()
+
+	if rainbowOn then
+		task.spawn(function()
+			local h=0
+			while rainbowOn do
+				h=(h+0.01)%1
+				local c=Color3.fromHSV(h,1,1)
+				Lighting.Ambient=c
+				Lighting.OutdoorAmbient=c
+				task.wait(0.01)
+			end
+		end)
+	else
+		Lighting.Ambient = originalAmbient
+		Lighting.OutdoorAmbient = originalOutdoor
+	end
 end)
-UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drag = false end end)
+
+updateRainbowUI()
+
+---------------------------------------------------
+-- CLOSE CLEANUP
+---------------------------------------------------
+
+close.MouseButton1Click:Connect(function()
+
+	rainbowOn = false
+	Lighting.Ambient = originalAmbient
+	Lighting.OutdoorAmbient = originalOutdoor
+
+	for _,v in pairs(activeBalls) do
+		if v then v:Destroy() end
+	end
+	activeBalls = {}
+
+	gui:Destroy()
+end)
+
+---------------------------------------------------
+-- DRAG
+---------------------------------------------------
+
+local dragging, start, pos
+
+frame.InputBegan:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then
+		dragging=true
+		start=i.Position
+		pos=frame.Position
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(i)
+	if dragging then
+		local d=i.Position-start
+		frame.Position=UDim2.new(pos.X.Scale,pos.X.Offset+d.X,pos.Y.Scale,pos.Y.Offset+d.Y)
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then
+		dragging=false
+	end
+end)
